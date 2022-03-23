@@ -3,8 +3,8 @@ import pyaudio
 import threading
 
 # Constants
-IP       = "127.0.0.1"
-PORT     = 6969
+IP       = "18.141.129.246"
+PORT     = 10424
 BUFFER   = 1024
 FORMAT   = pyaudio.paInt16
 CHANNELS = 2

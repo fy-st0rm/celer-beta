@@ -31,7 +31,8 @@ class Server:
 				# Sending the audio data to all the clients except the one who sent it
 				for i in self.clients:
 					if i != cli_id:
-						conn.send(audio)
+						self.clients[i].send(audio)
+
 			except Exception as e:
 				print(f"[ERROR] {cli_id}: {e}")
 				break
