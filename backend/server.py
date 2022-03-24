@@ -15,13 +15,15 @@ class Server:
 		# Holds all the clients connected
 		self.client_id = 0
 		self.clients = {}
+		self.usrname = ""
 	
 	def __create_sv(self):
 		# Socket client
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 		self.server.bind((self.ip, self.port))
 
-	def __handle_client(self, conn, cli_id):
+	def __handle_client(self, conn, usrname):
+		print(f"{usrname} just connected.")
 		while True:
 			try:
 				audio = conn.recv(BUFFER)
@@ -30,16 +32,16 @@ class Server:
 				
 				# Sending the audio data to all the clients except the one who sent it
 				for i in self.clients:
-					if i != cli_id:
+					if i != usrname:
 						self.clients[i].send(audio)
 
 			except Exception as e:
-				print(f"[ERROR] {cli_id}: {e}")
+				print(f"[ERROR] {usrname}: {e}")
 				break
 
 		conn.close()
-		print(f"{cli_id} just disconnected.")
-		self.clients.pop(cli_id)
+		print(f"{usrname} just disconnected.")
+		self.clients.pop(usrname)
 	
 	def close(self):
 		print("[INFO]: Server has been closed.")
@@ -52,10 +54,15 @@ class Server:
 		while self.running:
 			try:
 				conn, addr = self.server.accept()
-				self.clients.update({self.client_id: conn})
+				self.usrname = conn.recv(BUFFER).decode('utf-8')
+				self.usrname = self.usrname + f"#{self.client_id}"
+
+				#updating dictonary
+				self.clients.update({self.usrname: conn})
+				
 
 				# Thread for new connection
-				thread = threading.Thread(target = self.__handle_client, args = (conn, self.client_id))
+				thread = threading.Thread(target = self.__handle_client, args = (conn, self.usrname))
 				thread.start()
 
 				self.client_id += 1

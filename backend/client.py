@@ -3,21 +3,20 @@ import pyaudio
 import threading
 
 # Constants
-IP       = "18.141.129.246"
-PORT     = 10424
 BUFFER   = 1024
 FORMAT   = pyaudio.paInt16
 CHANNELS = 2
 RATE     = 44100
 
 class Client:
-	def __init__(self, ip, port):
-		self.ip = ip
-		self.port = port
+	def __init__(self):
+		self.ip = ""
+		self.port = 0
 		self.running = True
 	
 	def __create_cli(self):
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		print(f"[INFO]Connecting to {self.ip}:{self.port}")
 		self.client.connect((self.ip, self.port))
 	
 	def __pyaudio_init(self):
@@ -41,6 +40,23 @@ class Client:
 				self.running = False
 			except Exception as e:
 				print(f"[ERROR]: {e}")
+
+	def __username(self):
+		username = input("Username> ")
+		self.client.send(username.encode('utf-8'))
+
+	def __server(self):
+		running = True
+		while running:
+			indata = input("Server ip> ")
+			try:
+				indata = indata.split(":")
+				self.ip = str(indata[0])
+				self.port = int(indata[1])
+				running = False
+			except:
+				print("[SERVER_IP]:[SERVER_PORT]")
+
 	
 	def close(self):
 		self.istream.stop_stream()
@@ -52,7 +68,9 @@ class Client:
 		print("[INFO]: Disconnected from the server.")
 
 	def run(self):
+		self.__server()
 		self.__create_cli()
+		self.__username()
 		self.__pyaudio_init()
 		print(f"[INFO]: Connected to the {self.ip}:{self.port}")
 
@@ -62,6 +80,6 @@ class Client:
 		self.__record()
 
 if __name__ == "__main__":
-	client = Client(IP, PORT)
+	client = Client()
 	client.run()
 	client.close()
