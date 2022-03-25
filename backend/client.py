@@ -1,6 +1,7 @@
 import socket
 import pyaudio
 import threading
+import noisereduce as nr
 
 # Constants
 BUFFER   = 1024
@@ -13,10 +14,13 @@ class Client:
 		self.ip = ""
 		self.port = 0
 		self.running = True
+
+		self.mute = False
+		self.deafen = False
 	
 	def __create_cli(self):
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		print(f"[INFO]Connecting to {self.ip}:{self.port}")
+		print(f"[INFO] Connecting to {self.ip}:{self.port}")
 		self.client.connect((self.ip, self.port))
 	
 	def __pyaudio_init(self):
@@ -26,20 +30,23 @@ class Client:
 	
 	def __listen(self):
 		while self.running:
-			audio = self.client.recv(BUFFER)
-			if audio:
-				self.ostream.write(audio)
+			if not self.deafen: # If deafen dont receive the audio
+				audio = self.client.recv(BUFFER)
+				if audio:
+					self.ostream.write(audio)
 
 	def __record(self):
 		while self.running:
 			try:
-				audio = self.istream.read(BUFFER)
-				if audio:
-					self.client.send(audio)
+				if not self.mute and not self.deafen: # If mute and deafen is activated ignore the mic input
+					audio = self.istream.read(BUFFER)
+					if audio:
+						self.client.send(audio)
 			except KeyboardInterrupt:
 				self.running = False
 			except Exception as e:
 				print(f"[ERROR]: {e}")
+				self.running = False
 
 	def __username(self):
 		username = input("Username> ")
@@ -56,7 +63,6 @@ class Client:
 				running = False
 			except:
 				print("[SERVER_IP]:[SERVER_PORT]")
-
 	
 	def close(self):
 		self.istream.stop_stream()
