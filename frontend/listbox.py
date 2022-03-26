@@ -22,6 +22,7 @@ class ListBox:
 		self.start = 0
 		self.end = 0
 		self.selected = 0
+		self.focus = False
 	
 	def relocate(self, x, y, w, h):
 		self.x = x
@@ -69,12 +70,19 @@ class ListBox:
 		y = 1
 
 		for i in range(self.start, self.end, 1):
-			if i == self.selected:
+			if i == self.selected and self.focus:
 				self.win.addstr(y, x, self.items[i], self.selected_color)
 			else:
 				self.win.addstr(y, x, self.items[i])
 			self.win.refresh()
 			y += 1
+	
+	def handle_key(self, key):
+		if self.focus:
+			if key == curses.KEY_UP:
+				self.select_up()
+			elif key == curses.KEY_DOWN:
+				self.select_down()
 	
 	def draw(self):
 		self.win.erase()

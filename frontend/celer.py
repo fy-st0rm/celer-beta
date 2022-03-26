@@ -1,4 +1,5 @@
 from listbox import *
+from textbox import *
 from curses  import wrapper
 
 MAX_ROWS = MAX_COLS = 20
@@ -29,6 +30,7 @@ class Celer:
 	"""
 	def __create_widgets(self):
 		self.listbox = ListBox(self.surface, "Servers", 0, 0, 30, 9, SELECTED)
+		self.textbox = Textbox(self.surface, 0, 0, 0, 0)
 
 	def __init_colors(self):
 		curses.init_pair(SELECTED, curses.COLOR_BLACK, curses.COLOR_YELLOW)
@@ -56,20 +58,40 @@ class Celer:
 			x = int(cols / 2) - int(w / 2)
 			y = int(rows / 2) - int(h / 2) + 2
 			self.listbox.relocate(x, y, w, h)
+
+			h = 3
+			y = rows - 3
+			self.textbox.relocate(x, y, w, h)
+	
+	def __change_focus(self):
+		if self.listbox.focus:
+			self.listbox.focus = False
+			self.textbox.focus = True
+		elif self.textbox.focus:
+			self.textbox.focus = False
+			self.listbox.focus = True
 	
 	def __event(self):
-		key = self.surface.getkey()
+		key = self.surface.getch()
 		
-		if key == "KEY_UP":
-			self.listbox.select_up()
-		elif key == "KEY_DOWN":
-			self.listbox.select_down()
-
-		elif key == "q":
+		# 113 = q
+		if key == 113:
 			self.running = False
 
-		elif key == "KEY_RESIZE":
+		# 9 = TAB
+		elif key == 9:
+			self.__change_focus()
+		
+		# 10 = ENTER 
+		elif key == 10:
+			text = self.textbox.get_text()
+			self.textbox.clear()
+
+		elif key == curses.KEY_RESIZE:
 			self.__resize()
+
+		self.listbox.handle_key(key)
+		self.textbox.handle_key(key)
 
 	"""
 	* Rendering function
@@ -78,12 +100,13 @@ class Celer:
 		self.surface.clear()
 		self.surface.refresh()
 		self.listbox.draw()
+		self.textbox.draw()
 
 		# Rendering logo
 		rows, cols = self.surface.getmaxyx()
 		if rows > MAX_ROWS and cols > MAX_COLS:
 			x = int(cols/2) - int(len(LOGO[0])/2)
-			y = 0
+			y = 1
 			for i in LOGO:
 				self.surface.addstr(y, x, i)
 				y += 1
@@ -92,6 +115,9 @@ class Celer:
 	* Main loop function
 	"""
 	def run(self):
+		for i in range(10):
+			self.listbox.insert(f"Server#{i}")
+
 		while self.running:
 			self.__render()
 			self.__event()
