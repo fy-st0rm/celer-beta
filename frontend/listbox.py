@@ -6,8 +6,9 @@ class ListBox:
 	* A curses listbox class 
 	"""
 
-	def __init__(self, surface, x, y, w, h, selected_color):
+	def __init__(self, surface, title, x, y, w, h, selected_color):
 		self.surface = surface
+		self.title = title
 		self.x = x
 		self.y = y
 		self.w = w
@@ -21,6 +22,13 @@ class ListBox:
 		self.start = 0
 		self.end = 0
 		self.selected = 0
+	
+	def relocate(self, x, y, w, h):
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		self.win = curses.newwin(self.h, self.w, self.y, self.x)
 	
 	def select_up(self):
 		if self.selected > 0:
@@ -49,11 +57,14 @@ class ListBox:
 			self.end = self.h - 2
 		else:
 			self.end = len(self.items)
-	
-	def draw(self):
-		self.win.erase()
-		self.win.box()
 
+	def __render_title(self):
+		if self.title:
+			y = 0
+			x = int(self.w / 2) - int(len(self.title) / 2) - 2
+			self.win.addstr(y, x, f"|{self.title}|", curses.A_BOLD)
+
+	def __render_items(self):
 		x = 1 
 		y = 1
 
@@ -64,3 +75,12 @@ class ListBox:
 				self.win.addstr(y, x, self.items[i])
 			self.win.refresh()
 			y += 1
+	
+	def draw(self):
+		self.win.erase()
+		self.win.box()
+		self.win.refresh()
+		self.__render_title()
+		self.__render_items()
+
+

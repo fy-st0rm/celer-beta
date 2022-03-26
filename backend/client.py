@@ -1,7 +1,6 @@
 import socket
 import pyaudio
 import threading
-import noisereduce as nr
 
 # Constants
 BUFFER   = 1024
