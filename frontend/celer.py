@@ -1,7 +1,7 @@
 from listbox import *
 from textbox import *
 from curses  import wrapper
-
+import platform
 MAX_ROWS = MAX_COLS = 20
 
 SELECTED = 1
@@ -41,7 +41,10 @@ class Celer:
 
 		# Setting the terminal size
 		rows, cols = self.surface.getmaxyx()
-		curses.resizeterm(rows, cols)
+		if platform.system() == "Windows":
+			curses.resize_term(rows, cols)
+		else:
+			curses.resizeterm(rows, cols)
 
 		self.__init_colors()
 		self.__create_widgets()
