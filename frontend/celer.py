@@ -2,6 +2,20 @@ from listbox import *
 from textbox import *
 from curses  import wrapper
 import platform
+import sys
+
+# Importing the backend client
+sys.path.append("../backend")
+from client import *
+
+#TODO: [ ] Stop print output 
+#TODO: [ ] Maintain ip and port checks and display some errors
+#TODO: [ ] A help window
+#TODO: [ ] Output log window
+#TODO: [X] Connect client backend
+#TODO: [ ] Voice call window ([ ] mem list, [ ] mute and deafen button, [ ] Disconnect function)
+
+
 MAX_ROWS = MAX_COLS = 20
 
 SELECTED = 1
@@ -24,6 +38,9 @@ class Celer:
 	def __init__(self, surface):
 		self.surface = surface
 		self.running = True
+
+		self.connected = False
+		self.client = Client()
 	
 	"""
 	* Initializing functions
@@ -80,6 +97,7 @@ class Celer:
 		# 113 = q
 		if key == 113:
 			self.running = False
+			self.client.close()
 
 		# 9 = TAB
 		elif key == 9:
@@ -87,8 +105,22 @@ class Celer:
 		
 		# 10 = ENTER 
 		elif key == 10:
-			text = self.textbox.get_text()
+			text = self.textbox.get_text().split(":")
 			self.textbox.clear()
+
+			if len(text) < 2:
+				#TODO: Raise some error 
+				exit()
+
+			ip = text[0]
+			port = int(text[1])
+			res = self.client.init(ip, port)
+			print(res, ip, port)
+			# TODO: Check for the initializing error here!
+			if res:
+				self.connected = True
+				self.client.send_username("Slok")
+				self.client.run()
 
 		elif key == curses.KEY_RESIZE:
 			self.__resize()
@@ -117,6 +149,7 @@ class Celer:
 	"""
 	* Main loop function
 	"""
+
 	def run(self):
 		for i in range(10):
 			self.listbox.insert(f"Server#{i}")
@@ -124,6 +157,7 @@ class Celer:
 		while self.running:
 			self.__render()
 			self.__event()
+
 
 def main(stdscr):
 	celer = Celer(stdscr)
